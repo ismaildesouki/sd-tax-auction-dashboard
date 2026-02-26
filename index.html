@@ -229,7 +229,8 @@ const ALL_DATA = [{"item":"0332","apn":"4906313100","address":"8332 Case St","ci
 // rv: raw value function for filtering/sorting
 const COLUMNS = [
   {key:"rank",label:"Rank",w:60,vis:true,ft:"select",
-    rv:d=>d.rankTop10?'Top10 #'+d.rankTop10:d.rankLand?'Land #'+d.rankLand:d.avoid?'Avoid':'',
+    rv:d=>d.rankTop10?'Top10 #'+d.rankTop10:d.rankLand?'Land #'+d.rankLand:d.avoid?'Avoid':'—',
+    sv:d=>d.rankTop10?d.rankTop10:d.rankLand?10+d.rankLand:d.avoid?100:999,
     fmt:d=>{
       if(d.rankTop10)return'<span class="badge badge-t10">'+d.rankTop10+'</span>';
       if(d.rankLand)return'<span class="badge badge-land">L'+d.rankLand+'</span>';
@@ -586,7 +587,7 @@ function applyFilters(){
   // Sort
   if(sortKey){
     const col=COLUMNS.find(c=>c.key===sortKey);
-    const getVal=col&&col.rv?d=>col.rv(d):d=>{
+    const getVal=col?(col.sv||col.rv):d=>{
       const v=d[sortKey];
       return typeof v==='string'?v.toLowerCase():v||0;
     };
