@@ -5,54 +5,58 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SD Tax Auction Dashboard - March 2026</title>
 <style>
-:root{--bg:#0a0a0a;--card:#141414;--border:#222;--text:#e0e0e0;--dim:#888;--accent:#4ecdc4;--red:#ff6b6b;--green:#51cf66;--gold:#ffd43b;--blue:#74c0fc}
+:root{--bg:#f5f6f8;--card:#ffffff;--border:#e0e2e7;--text:#1a1a2e;--dim:#6b7280;--accent:#0d7377;--red:#dc2626;--green:#16a34a;--gold:#b45309;--blue:#2563eb}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding:16px;max-width:100%}
-h1{font-size:1.6rem;color:#fff} h2{font-size:1.2rem;color:var(--accent);margin:20px 0 10px}
-.header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+h1{font-size:1.6rem;color:#0f172a} h2{font-size:1.2rem;color:var(--accent);margin:20px 0 10px}
+a{color:var(--blue);text-decoration:none} a:hover{text-decoration:underline}
+.header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--border)}
 .header-left{flex:1} .subtitle{color:var(--dim);font-size:.85rem}
 .countdown{display:flex;gap:8px;flex-wrap:wrap}
-.cd-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;text-align:center;min-width:120px}
-.cd-val{font-size:1.1rem;font-weight:700;color:#fff} .cd-lbl{font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.cd-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;text-align:center;min-width:120px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.cd-val{font-size:1.1rem;font-weight:700;color:#0f172a} .cd-lbl{font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px}
-.stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
-.stat-v{font-size:1.3rem;font-weight:700;color:#fff} .stat-l{font-size:.7rem;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
-.filters{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.filters input,.filters select{background:#1a1a1a;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:.8rem}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.stat-v{font-size:1.3rem;font-weight:700;color:#0f172a} .stat-l{font-size:.7rem;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.filters{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.filters input,.filters select{background:#f9fafb;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:.8rem}
+.filters input:focus,.filters select:focus{outline:2px solid var(--accent);outline-offset:-1px}
 .filters input{flex:1;min-width:180px} .filters select{min-width:120px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.chip{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:4px 12px;font-size:.75rem;cursor:pointer;transition:.2s;user-select:none}
-.chip:hover,.chip.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
-.chip.active-red{background:var(--red);color:#000;border-color:var(--red)} .chip.active-gold{background:var(--gold);color:#000;border-color:var(--gold)}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:4px 12px;font-size:.75rem;cursor:pointer;transition:.2s;user-select:none;color:var(--dim)}
+.chip:hover{background:#e0f2f1;color:var(--accent);border-color:var(--accent)}
+.chip.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.chip.active-red{background:var(--red);color:#fff;border-color:var(--red)} .chip.active-gold{background:var(--gold);color:#fff;border-color:var(--gold)}
 .results-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:.8rem;color:var(--dim)}
-.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
-table{width:100%;border-collapse:collapse;font-size:.78rem;white-space:nowrap}
-th{background:#1a1a1a;color:var(--accent);text-align:left;padding:8px 10px;font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;position:sticky;top:0;z-index:2;user-select:none}
-th:hover{color:#fff} th .arrow{margin-left:4px;font-size:.65rem}
-td{padding:6px 10px;border-bottom:1px solid #1a1a1a}
-tr:hover td{background:#1a1a1a}
-tr.avoid td{background:rgba(255,107,107,.04)}
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.06);background:var(--card)}
+table{width:100%;border-collapse:collapse;font-size:.8rem;white-space:nowrap}
+th{background:#f1f5f9;color:#334155;text-align:left;padding:10px 12px;font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;position:sticky;top:0;z-index:2;user-select:none;border-bottom:2px solid var(--border)}
+th:hover{color:var(--accent);background:#e2e8f0} th .arrow{margin-left:4px;font-size:.65rem}
+td{padding:8px 12px;border-bottom:1px solid #f1f5f9}
+tr:hover td{background:#f8fafc}
+tr.avoid td{background:#fef2f2}
 .badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-weight:700;font-size:.75rem}
-.badge-t10{background:var(--accent);color:#000} .badge-land{background:var(--gold);color:#000}
-.badge-avoid{background:var(--red);color:#000;font-size:.6rem}
+.badge-t10{background:var(--accent);color:#fff} .badge-land{background:var(--gold);color:#fff}
+.badge-avoid{background:var(--red);color:#fff;font-size:.6rem}
 .tier-1{color:var(--green);font-weight:600} .tier-2{color:var(--accent)} .tier-3{color:var(--red)} .tier-neg{color:var(--red);font-weight:600}
 .money{font-variant-numeric:tabular-nums}
-.risk-low{color:var(--green)} .risk-med{color:var(--gold)} .risk-high{color:#ff9f43} .risk-vhigh{color:var(--red)}
-.note-cell{white-space:normal;max-width:250px;font-size:.72rem;color:var(--dim)}
-.export-btn{background:var(--accent);color:#000;border:none;padding:6px 14px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer}
-.export-btn:hover{opacity:.8}
+.risk-low{color:var(--green)} .risk-med{color:var(--gold)} .risk-high{color:#ea580c} .risk-vhigh{color:var(--red)}
+.note-cell{white-space:normal;max-width:250px;font-size:.74rem;color:var(--dim)}
+.export-btn{background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer}
+.export-btn:hover{opacity:.85}
 .col-toggle{position:relative;display:inline-block}
-.col-menu{display:none;position:absolute;right:0;top:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;z-index:100;min-width:200px;max-height:300px;overflow-y:auto}
+.col-menu{display:none;position:absolute;right:0;top:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;z-index:100;min-width:200px;max-height:300px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)}
 .col-menu.show{display:block}
-.col-menu label{display:block;padding:2px 0;font-size:.75rem;cursor:pointer;white-space:nowrap}
+.col-menu label{display:block;padding:3px 0;font-size:.78rem;cursor:pointer;white-space:nowrap}
 .col-menu input{margin-right:6px}
+.addr-link{color:var(--blue);text-decoration:none;font-weight:500} .addr-link:hover{text-decoration:underline}
 @media(max-width:768px){
   .header{flex-direction:column} .stats{grid-template-columns:repeat(3,1fr)}
-  table{font-size:.7rem} th,td{padding:4px 6px}
+  table{font-size:.72rem} th,td{padding:5px 8px}
 }
 @media print{
-  body{background:#fff;color:#000} .card,.stat,.filters,.chips{background:#f5f5f5;border-color:#ddd}
-  th{background:#eee;color:#333} h1,.stat-v{color:#000}
+  body{background:#fff} .card,.stat,.filters,.chips{box-shadow:none}
+  th{background:#f1f5f9} .addr-link{color:#000;text-decoration:none}
 }
 </style>
 </head>
@@ -123,9 +127,10 @@ tr.avoid td{background:rgba(255,107,107,.04)}
   </table>
 </div>
 
-<p style="text-align:center;color:var(--dim);margin-top:30px;padding:16px;border-top:1px solid var(--border);font-size:.8rem">
+<p style="text-align:center;color:var(--dim);margin-top:30px;padding:16px;border-top:2px solid var(--border);font-size:.8rem">
   SD County Tax Auction Dashboard | Data: SD County GIS &amp; SDTTC | Feb 26, 2026<br>
-  Research only &mdash; not financial or legal advice. Consult professionals before bidding.
+  Research only &mdash; not financial or legal advice. Consult professionals before bidding.<br>
+  <span style="font-size:.7rem">Addresses link to Zillow for additional property details (beds, baths, sqft, photos)</span>
 </p>
 
 <script>
@@ -139,7 +144,10 @@ const COLUMNS = [
     return'<span style="color:#333">—</span>';
   }},
   {key:"item",label:"Item #",w:65,vis:true,fmt:d=>'#'+d.item},
-  {key:"address",label:"Address",w:220,vis:true,fmt:d=>d.address},
+  {key:"address",label:"Address",w:220,vis:true,fmt:d=>{
+    const q=encodeURIComponent(d.address+' '+d.city+' CA '+d.zip);
+    return'<a class="addr-link" href="https://www.zillow.com/homes/'+q+'_rb/" target="_blank" rel="noopener">'+d.address+'</a>';
+  }},
   {key:"city",label:"City",w:110,vis:true,fmt:d=>d.city},
   {key:"neighborhood",label:"Neighborhood",w:170,vis:true,fmt:d=>d.neighborhood},
   {key:"zip",label:"ZIP",w:55,vis:false,fmt:d=>d.zip},
