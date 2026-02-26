@@ -109,7 +109,48 @@ tr.avoid td{background:#fef2f2}
 
 <div class="stats" id="statsBar"></div>
 
+<div class="tab-bar" style="margin-bottom:16px">
+  <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
+  <button class="tab-btn" data-tab="details" onclick="switchTab('details')">Detailed Analysis</button>
+  <button class="tab-btn" data-tab="map" onclick="switchTab('map')">Map</button>
+</div>
+
+<!-- ===== OVERVIEW TAB ===== -->
+<div id="overviewView">
+
 <div class="chips" id="chips">
+  <span class="chip active" data-filter="all">All (119)</span>
+  <span class="chip" data-filter="top10">Top 10 Picks</span>
+  <span class="chip" data-filter="top5land">Top 5 Land</span>
+  <span class="chip" data-filter="improved">Improved</span>
+  <span class="chip" data-filter="land">Land</span>
+  <span class="chip" data-filter="avoid">Avoid</span>
+  <span class="chip" data-filter="coastal">Coastal (&lt;5mi)</span>
+  <span class="chip" data-filter="under100k">Under $100K</span>
+</div>
+
+<div class="filters">
+  <input type="text" id="search" placeholder="Search by address, city, neighborhood...">
+  <button class="export-btn" onclick="clearAllFilters()">Clear Filters</button>
+</div>
+
+<div class="results-bar">
+  <span id="resultCount">119 properties</span>
+  <span>Click &#9660; in column headers to filter &bull; Click column name to sort</span>
+</div>
+
+<div class="tbl-wrap">
+  <table>
+    <thead><tr id="headerRow"></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+</div>
+
+<!-- ===== DETAILS TAB ===== -->
+<div id="detailsView" style="display:none">
+
+<div class="chips" id="chipsDetail">
   <span class="chip active" data-filter="all">All (119)</span>
   <span class="chip" data-filter="top10">Top 10 Picks</span>
   <span class="chip" data-filter="top5land">Top 5 Land</span>
@@ -128,7 +169,7 @@ tr.avoid td{background:#fef2f2}
 </div>
 
 <div class="filters">
-  <input type="text" id="search" placeholder="Search anything across all fields...">
+  <input type="text" id="searchDetail" placeholder="Search anything across all fields...">
   <div class="col-toggle">
     <button class="export-btn" onclick="document.getElementById('colMenu').classList.toggle('show')">Columns &#9662;</button>
     <div class="col-menu" id="colMenu"></div>
@@ -138,28 +179,31 @@ tr.avoid td{background:#fef2f2}
 </div>
 
 <div class="results-bar">
-  <span id="resultCount">119 properties</span>
-  <span>Click column headers to sort</span>
+  <span id="resultCountDetail">119 properties</span>
+  <span>Click &#9660; to filter &bull; Click column name to sort</span>
 </div>
-
-<div class="tab-bar">
-  <button class="tab-btn active" data-tab="table" onclick="switchTab('table')">Table View</button>
-  <button class="tab-btn" data-tab="map" onclick="switchTab('map')">Map View</button>
-</div>
-
-<div id="tableView">
 
 <div class="tbl-wrap">
   <table>
-    <thead>
-      <tr id="headerRow"></tr>
-    </thead>
-    <tbody id="tbody"></tbody>
+    <thead><tr id="headerRowDetail"></tr></thead>
+    <tbody id="tbodyDetail"></tbody>
   </table>
 </div>
 </div>
 
-<div id="mapView">
+<!-- ===== MAP TAB ===== -->
+<div id="mapView" style="display:none">
+
+<div class="chips" id="chipsMap">
+  <span class="chip active" data-filter="all">All (119)</span>
+  <span class="chip" data-filter="top10">Top 10 Picks</span>
+  <span class="chip" data-filter="top5land">Top 5 Land</span>
+  <span class="chip" data-filter="improved">Improved</span>
+  <span class="chip" data-filter="land">Land</span>
+  <span class="chip" data-filter="coastal">Coastal (&lt;5mi)</span>
+  <span class="chip" data-filter="under100k">Under $100K</span>
+</div>
+
   <div id="mapContainer"></div>
   <div class="map-legend">
     <span style="font-weight:600;color:var(--text)">Legend:</span>
@@ -261,6 +305,10 @@ function fmtM(n){
 }
 
 let sortKey='', sortDir=1, activeChip='all', filtered=ALL_DATA.slice();
+
+// Define which columns show on overview vs details
+const OVERVIEW_KEYS=new Set(['rank','address','city','neighborhood','type','subtype','beds','baths','sqft','yearBuilt','minBid','assessed','coastMi','estRange','risk']);
+const OVERVIEW_COLS=COLUMNS.filter(c=>OVERVIEW_KEYS.has(c.key));
 
 // Column filter state: colFilters[key] = Set of allowed values (for select/text), or {lo,hi} for range
 const colFilters={};
@@ -432,22 +480,23 @@ function updateCountdown(){
 }
 updateCountdown(); setInterval(updateCountdown,60000);
 
-// Chips
+// Chips - wire up all chip containers
 document.querySelectorAll('.chip').forEach(el=>{
   el.onclick=()=>{
+    // Sync active state across all chip containers
     document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active','active-red','active-gold'));
     activeChip=el.dataset.filter;
-    el.classList.add(activeChip==='avoid'?'active-red':activeChip==='top5land'?'active-gold':'active');
+    document.querySelectorAll('.chip[data-filter="'+activeChip+'"]').forEach(c=>{
+      c.classList.add(activeChip==='avoid'?'active-red':activeChip==='top5land'?'active-gold':'active');
+    });
     applyFilters();
   };
 });
 
 // Render
-function renderHeaders(){
-  const hr=document.getElementById('headerRow');
-  hr.innerHTML='';
-  const visCols=COLUMNS.filter(c=>c.vis);
-  visCols.forEach((c,ci)=>{
+function renderHeadersTo(hrEl, cols){
+  hrEl.innerHTML='';
+  cols.forEach((c,ci)=>{
     const th=document.createElement('th');
     th.style.minWidth=c.w+'px';
     const wrap=document.createElement('div');wrap.className='th-wrap';
@@ -455,7 +504,6 @@ function renderHeaders(){
     lbl.innerHTML=c.label+(sortKey===c.key?(sortDir===1?' ▲':' ▼'):'');
     lbl.onclick=()=>{if(sortKey===c.key)sortDir*=-1;else{sortKey=c.key;sortDir=1;}applyFilters();};
     wrap.appendChild(lbl);
-    // Filter dropdown button
     const fbtn=document.createElement('button');
     fbtn.className='th-filter-btn'+(isColFiltered(c.key)?' active':'');
     fbtn.innerHTML='▼';
@@ -464,25 +512,43 @@ function renderHeaders(){
     fbtn.onclick=e=>{e.stopPropagation();openFilterPopup(colRealIdx,th);};
     wrap.appendChild(fbtn);
     th.appendChild(wrap);
-    hr.appendChild(th);
+    hrEl.appendChild(th);
   });
 }
 
-function renderTable(){
-  renderHeaders();
-  const tb=document.getElementById('tbody');
-  tb.innerHTML='';
+function renderTableTo(hrEl, tbEl, cols, countEl){
+  renderHeadersTo(hrEl, cols);
+  tbEl.innerHTML='';
   filtered.forEach(d=>{
     const tr=document.createElement('tr');
     if(d.avoid)tr.classList.add('avoid');
-    COLUMNS.filter(c=>c.vis).forEach(c=>{
+    cols.forEach(c=>{
       const td=document.createElement('td');
       td.innerHTML=c.fmt(d);
       tr.appendChild(td);
     });
-    tb.appendChild(tr);
+    tbEl.appendChild(tr);
   });
-  document.getElementById('resultCount').textContent=filtered.length+' properties';
+  countEl.textContent=filtered.length+' properties';
+}
+
+function renderTable(){
+  if(currentTab==='overview'){
+    renderTableTo(
+      document.getElementById('headerRow'),
+      document.getElementById('tbody'),
+      OVERVIEW_COLS,
+      document.getElementById('resultCount')
+    );
+  }
+  if(currentTab==='details'){
+    renderTableTo(
+      document.getElementById('headerRowDetail'),
+      document.getElementById('tbodyDetail'),
+      COLUMNS.filter(c=>c.vis),
+      document.getElementById('resultCountDetail')
+    );
+  }
   updateStats(filtered);
 }
 
@@ -497,8 +563,9 @@ function applyFilters(){
     'allin100':d=>d.allinLow>0&&d.allinLow<100000,'allin200':d=>d.allinLow>0&&d.allinLow<200000};
   if(cf[activeChip])data=data.filter(cf[activeChip]);
 
-  // Global search
-  const q=document.getElementById('search').value.toLowerCase();
+  // Global search (check both search boxes)
+  const searchEl=currentTab==='details'?document.getElementById('searchDetail'):document.getElementById('search');
+  const q=searchEl?searchEl.value.toLowerCase():'';
   if(q)data=data.filter(d=>{
     const all=Object.values(d).join(' ').toLowerCase();
     return all.includes(q);
@@ -556,6 +623,7 @@ function exportCSV(){
 
 // Event listeners
 document.getElementById('search').addEventListener('input',applyFilters);
+document.getElementById('searchDetail').addEventListener('input',applyFilters);
 
 // Close menus on outside click
 document.addEventListener('click',e=>{
@@ -564,20 +632,22 @@ document.addEventListener('click',e=>{
 });
 
 // ===== TAB SWITCHING =====
-let currentTab='table';
+let currentTab='overview';
 let map=null, markersLayer=null;
 
 function switchTab(tab){
   currentTab=tab;
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelector('[data-tab="'+tab+'"]').classList.add('active');
-  document.getElementById('tableView').style.display=tab==='table'?'block':'none';
+  document.getElementById('overviewView').style.display=tab==='overview'?'block':'none';
+  document.getElementById('detailsView').style.display=tab==='details'?'block':'none';
   document.getElementById('mapView').style.display=tab==='map'?'block':'none';
   if(tab==='map'){
     if(!map)initMap();
     setTimeout(()=>map.invalidateSize(),100);
     updateMapMarkers();
   }
+  applyFilters();
 }
 
 function initMap(){
@@ -637,6 +707,7 @@ function updateMapMarkers(){
 
 // Initial render
 sortKey='rank'; sortDir=1;
+currentTab='overview';
 applyFilters();
 </script>
 </body>
